@@ -1,0 +1,100 @@
+---
+title: "bridges_homework"
+author: "Yifan Zhang"
+date: "2021/2/4"
+output: github_document
+---
+
+## Prerequisite
+
+```{r}
+#install.packages("tidyverse")
+#install.packages("backports")
+library(tidyverse)
+```
+
+## Import data
+
+
+```{r}
+AllBridgeData <- read.csv("bridge_data.txt")
+```
+
+## Pick some variables
+
+Make a file with bridge ID, year, fips codes, condition ratings, and a few other variables. According to the data description, we need to find item 8 (structure Number), item 27 (year), item 1 (state code), item 3(county code), item 4 (place code), and item 58 - 62 (condition ratings). I am also interested in item 2 (highway agency district), item 16 (latitude), and item 17 (longitude).
+
+```{r}
+BridgeData <- select(AllBridgeData, STRUCTURE_NUMBER_008, YEAR_BUILT_027, DECK_COND_058, SUPERSTRUCTURE_COND_059, SUBSTRUCTURE_COND_060, CHANNEL_COND_061, CULVERT_COND_062, STATE_CODE_001, COUNTY_CODE_003, PLACE_CODE_004, HIGHWAY_DISTRICT_002, LAT_016, LONG_017)
+head(BridgeData)
+write.csv(BridgeData, "bridge_data_new", row.names = FALSE)
+#show the file I made
+NewData <- read.csv("bridge_data_new")
+head(NewData)
+```
+
+## Make a plot
+
+In the warm-up section, we are required to make a plot. I decide to make a plot with latitude and longitude.
+
+```{r}
+plot(BridgeData$LAT_016, BridgeData$LONG_017, xlab = "latitude", ylab = "longitude", main = "Latitude&Longitude Map")
+```
+
+This is a relatively easy visualization. We expect to see where most of these bridges locate.
+
+## Project Idea
+
+## Subset of "interesting" bridges
+
+I intend to make a subset of all Wisconsin bridges. According to the data description, the FIPS code for Wisconsin State (Item 1) is 55.
+
+```{r}
+WisconsinBridges <- BridgeData[which(BridgeData$STATE_CODE_001 == 55), ]
+head(WisconsinBridges)
+```
+
+## Analyze and visualization
+
+Track how those bridges have changed over time. Make an interactive visualization that helps to tell a story. I intend to build x-axis with condition ratings (58-62) and y-axis with build year (item 27).
+
+```{r}
+library(ggplot2)
+#install.packages("ggpubr")
+library(ggpubr)
+
+a <- ggplot(WisconsinBridges, aes(DECK_COND_058, YEAR_BUILT_027)) + 
+  labs(title = "Year vs Deck Condition", x = "Deck Condition", y = "Year Built") +
+  ylim(1850, 2020) +
+  geom_point(colour = "darkblue")
+
+b <- ggplot(WisconsinBridges, aes(SUPERSTRUCTURE_COND_059, YEAR_BUILT_027)) + 
+  labs(title = "Year vs Superstructure Condition", x = "SuperStructure Condition", y = "Year Built") +
+  ylim(1850, 2020) +
+  geom_point(colour = "gold")
+
+c <- ggplot(WisconsinBridges, aes(SUBSTRUCTURE_COND_060, YEAR_BUILT_027)) + 
+  labs(title = "Year vs Substructure Condition", x = "Substructure Condition", y = "Year Built") +
+  ylim(1850, 2020) +
+  geom_point(colour = "darkcyan")
+
+d <- ggplot(WisconsinBridges, aes(CHANNEL_COND_061, YEAR_BUILT_027)) + 
+  labs(title = "Year vs Channel Condition", x = "Channel and Channel Protection", y = "Year Built") +
+  ylim(1850, 2020) +
+  geom_point(colour = "firebrick")
+
+e <- ggplot(WisconsinBridges, aes(CULVERT_COND_062, YEAR_BUILT_027)) + 
+  labs(title = "Year vs Culverts Condition", x = "Culverts Condition", y = "Year Built") +
+  ylim(1850, 2020) +
+  geom_point(colour = "seagreen")
+
+ggarrange(a, b, c, d, e, ncol = 3, nrow = 2)
+```
+
+## Conclusion
+
+From the above visualization, we found that:
+
+1.The ggplot of deck condition is similar to the ggplot of superstructure condition. These two variables may be related to each other.
+
+2.Overall the channel condition is the best, because the minimum of channel condition of bridges in WI is 4.
